@@ -14,7 +14,7 @@ enum custom_keycodes {
 };
 
 enum td_keycodes {
-  SPTG // spotlight on tap, gui on hold
+  SPOTLIGHT_GUI // spotlight on tap, gui on hold
 };
 
 typedef enum {
@@ -35,7 +35,7 @@ void sptg_reset (qk_tap_dance_state_t *state, void *user_data);
 #define LT_LEDM LT(_LED, KC_MINS)
 #define MO_FUNC MO(_FUNC)
 #define TG_HRHR TG(_HR)
-#define SPTLGHT TD(SPTG)
+#define TD_SPTG TD(SPOTLIGHT_GUI)
 
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -50,7 +50,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,XXXXXXX ,XXXXXXX ,        XXXXXXX ,XXXXXXX ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
-     KC_LCTL ,XXXXXXX ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    SPTLGHT ,TG_HRHR ,        KC_DEL  ,KC_ENT  ,    KC_BSPC ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
+     KC_LCTL ,XXXXXXX ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    TD_SPTG ,TG_HRHR ,        KC_DEL  ,KC_ENT  ,    KC_BSPC ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
   ),
 
@@ -130,5 +130,5 @@ void sptg_reset (qk_tap_dance_state_t *state, void *user_data) {
 }
 
 qk_tap_dance_action_t tap_dance_actions[] = {
-  [SPTG] = ACTION_TAP_DANCE_FN_ADVANCED_TIME(NULL, sptg_finished, sptg_reset, 100)
+  [SPOTLIGHT_GUI] = ACTION_TAP_DANCE_FN_ADVANCED_TIME(NULL, sptg_finished, sptg_reset, 100)
 };
