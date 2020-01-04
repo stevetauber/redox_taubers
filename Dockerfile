@@ -1,6 +1,6 @@
 FROM qmkfm/qmk_firmware:latest
 
-ARG keymap=taubers
+ARG keymap=stevetauber
 ARG target_folder="./keyboards/redox/keymaps/$keymap"
 ARG source_folder="./$keymap"
 

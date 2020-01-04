@@ -13,10 +13,30 @@ enum custom_keycodes {
   LED,
 };
 
+enum td_keycodes {
+  SPTG // spotlight on tap, gui on hold
+};
+
+typedef enum {
+  SINGLE_TAP,
+  SINGLE_HOLD,
+} td_state_t;
+
+
+static td_state_t td_state;
+int cur_dance (qk_tap_dance_state_t *state);
+void sptg_finished (qk_tap_dance_state_t *state, void *user_data);
+void sptg_reset (qk_tap_dance_state_t *state, void *user_data);
+
+
+
+
 // Shortcut to make keymap more readable
 #define LT_LEDM LT(_LED, KC_MINS)
 #define MO_FUNC MO(_FUNC)
 #define TG_HRHR TG(_HR)
+#define SPTLGHT TD(SPTG)
+
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -30,7 +50,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,XXXXXXX ,XXXXXXX ,        XXXXXXX ,XXXXXXX ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
-     KC_LCTL ,XXXXXXX ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    KC_LGUI ,TG_HRHR ,        KC_DEL  ,KC_ENT  ,    KC_BSPC ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
+     KC_LCTL ,XXXXXXX ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    SPTLGHT ,TG_HRHR ,        KC_DEL  ,KC_ENT  ,    KC_BSPC ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
   ),
 
@@ -75,4 +95,40 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
      XXXXXXX ,XXXXXXX ,XXXXXXX ,XXXXXXX ,     XXXXXXX ,    XXXXXXX ,XXXXXXX ,        XXXXXXX ,XXXXXXX ,    XXXXXXX ,     XXXXXXX ,XXXXXXX ,XXXXXXX ,XXXXXXX 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
   )
+};
+
+
+
+int cur_dance (qk_tap_dance_state_t *state) {
+  if (state->count == 1) {
+    if (state->interrupted || !state->pressed) { return SINGLE_TAP; }
+    else { return SINGLE_HOLD; }
+  }
+  else { return 2; } // any number higher than the maximum state value you return above
+}
+
+void sptg_finished (qk_tap_dance_state_t *state, void *user_data) {
+  td_state = cur_dance(state);
+  switch (td_state) {
+    case SINGLE_TAP:
+      SEND_STRING(SS_LGUI(SS_TAP(X_SPACE)));
+      break;
+    case SINGLE_HOLD:
+      register_mods(MOD_BIT(KC_LGUI));
+      break;
+  }
+}
+
+void sptg_reset (qk_tap_dance_state_t *state, void *user_data) {
+  switch (td_state) {
+    case SINGLE_TAP:
+      break;
+    case SINGLE_HOLD:
+      unregister_mods(MOD_BIT(KC_LGUI)); 
+      break;
+  }
+}
+
+qk_tap_dance_action_t tap_dance_actions[] = {
+  [SPTG] = ACTION_TAP_DANCE_FN_ADVANCED_TIME(NULL, sptg_finished, sptg_reset, 100)
 };
