@@ -14,7 +14,7 @@ enum custom_keycodes {
 };
 
 enum td_keycodes {
-  SPOTLIGHT_GUI // spotlight on tap, gui on hold
+  ENTER_SPOTLIGHT // spotlight on tap, gui on hold
 };
 
 typedef enum {
@@ -25,8 +25,8 @@ typedef enum {
 
 static td_state_t td_state;
 int cur_dance (qk_tap_dance_state_t *state);
-void sptg_finished (qk_tap_dance_state_t *state, void *user_data);
-void sptg_reset (qk_tap_dance_state_t *state, void *user_data);
+void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data);
+void enter_spotlight_reset (qk_tap_dance_state_t *state, void *user_data);
 
 
 
@@ -35,7 +35,7 @@ void sptg_reset (qk_tap_dance_state_t *state, void *user_data);
 #define LT_LEDM LT(_LED, KC_MINS)
 #define MO_FUNC MO(_FUNC)
 #define TG_HRHR TG(_HR)
-#define TD_SPTG TD(SPOTLIGHT_GUI)
+#define TD_ESL TD(ENTER_SPOTLIGHT)
 #define LGA     LGUI(KC_LALT)
 
 
@@ -49,9 +49,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┤                         ├────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      KC_ESC  ,KC_A    ,KC_S    ,KC_D    ,KC_F    ,KC_G    ,KC_LBRC ,                          KC_RBRC ,KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-     KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,LGA     ,XXXXXXX ,        XXXXXXX ,LGA     ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
+     KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,LGA     ,TG_HRHR ,        TG_HRHR ,LGA     ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
-     KC_LCTL ,XXXXXXX ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    TD_SPTG ,TG_HRHR ,        KC_DEL  ,KC_ENT  ,    KC_BSPC ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
+     KC_LCTL ,XXXXXXX ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    KC_LGUI ,TD_ESL  ,        KC_DEL  ,KC_ENT  ,    KC_BSPC ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
   ),
 
@@ -79,7 +79,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      _______ ,XXXXXXX ,XXXXXXX ,XXXXXXX ,XXXXXXX ,XXXXXXX ,_______ ,_______ ,        _______ ,_______ ,XXXXXXX ,KC_P1   ,KC_P2   ,KC_P3   ,KC_PEQL ,_______ ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
-     _______ ,_______ ,_______ ,_______ ,     _______ ,    _______ ,_______ ,        _______ ,_______ ,    KC_P0   ,     KC_P0   ,KC_PDOT ,XXXXXXX ,XXXXXXX 
+     _______ ,_______ ,_______ ,_______ ,     _______ ,    _______ ,_______ ,        _______ ,_______ ,    _______ ,     KC_P0   ,KC_PDOT ,XXXXXXX ,XXXXXXX 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
   ),
 
@@ -108,28 +108,27 @@ int cur_dance (qk_tap_dance_state_t *state) {
   else { return 2; } // any number higher than the maximum state value you return above
 }
 
-void sptg_finished (qk_tap_dance_state_t *state, void *user_data) {
+void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data) {
   td_state = cur_dance(state);
   switch (td_state) {
     case SINGLE_TAP:
-      SEND_STRING(SS_LGUI(SS_TAP(X_SPACE)));
+      SEND_STRING(SS_TAP(X_ENTER));
       break;
     case SINGLE_HOLD:
-      register_mods(MOD_BIT(KC_LGUI));
+      SEND_STRING(SS_LGUI(SS_TAP(X_SPACE)));
       break;
   }
 }
 
-void sptg_reset (qk_tap_dance_state_t *state, void *user_data) {
+void enter_spotlight_reset (qk_tap_dance_state_t *state, void *user_data) {
   switch (td_state) {
     case SINGLE_TAP:
       break;
     case SINGLE_HOLD:
-      unregister_mods(MOD_BIT(KC_LGUI)); 
       break;
   }
 }
 
 qk_tap_dance_action_t tap_dance_actions[] = {
-  [SPOTLIGHT_GUI] = ACTION_TAP_DANCE_FN_ADVANCED_TIME(NULL, sptg_finished, sptg_reset, 100)
+  [ENTER_SPOTLIGHT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, enter_spotlight_finished, enter_spotlight_reset)
 };
