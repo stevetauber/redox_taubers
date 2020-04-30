@@ -12,27 +12,32 @@ enum custom_keycodes {
 };
 
 enum td_keycodes {
-  ENTER_SPOTLIGHT // spotlight on tap, gui on hold
+  ENTER_SPOTLIGHT, // spotlight on tap, gui on hold
+  SWITCH_SPACES,   // switch to space 1 or 2 
 };
 
 typedef enum {
   SINGLE_TAP,
   SINGLE_HOLD,
-} td_state_tap_and_hold;
+  DOUBLE_TAP,
+  DOUBLE_HOLD,
+} td_state_options;
 
 
-static td_state_tap_and_hold td_state;
-int tap_and_hold_dance (qk_tap_dance_state_t *state);
+int dance (qk_tap_dance_state_t *state);
+void td_reset (qk_tap_dance_state_t *state, void *user_data);
+
+static td_state_options td_state_enter_spotlight;
 void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data);
-void enter_spotlight_reset (qk_tap_dance_state_t *state, void *user_data);
-
-
+static td_state_options td_state_switch_spaces;
+void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data);
 
 
 // Shortcut to make keymap more readable
 #define MO_FUNC MO(_FUNC)
 #define TG_HRHR TG(_HR)
-#define TD_ESL TD(ENTER_SPOTLIGHT)
+#define TD_ESL  TD(ENTER_SPOTLIGHT)
+#define TD_SWSP TD(SWITCH_SPACES)
 #define LGA     LGUI(KC_LALT)
 
 
@@ -48,7 +53,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,LGA     ,TG_HRHR ,        TG_HRHR ,LGA     ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
-     KC_LCTL ,KC_BSLS ,XXXXXXX ,KC_LALT ,     KC_SPC  ,    KC_LGUI ,TD_ESL  ,        KC_DEL  ,KC_BSPC ,    KC_ENT  ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
+     KC_LCTL ,KC_BSLS ,TD_SWSP ,KC_LALT ,     KC_SPC  ,    KC_LGUI ,TD_ESL  ,        KC_DEL  ,KC_BSPC ,    KC_ENT  ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
   ),
 
@@ -83,35 +88,56 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 
-int tap_and_hold_dance (qk_tap_dance_state_t *state) {
+int dance (qk_tap_dance_state_t *state) {
   if (state->count == 1) {
-    if (state->interrupted || !state->pressed) { return SINGLE_TAP; }
-    else { return SINGLE_HOLD; }
-  }
-  else { return 2; } // any number higher than the maximum state value you return above
+    if (state->interrupted || !state->pressed) {
+      return SINGLE_TAP;
+    }
+    else {
+      return SINGLE_HOLD;
+    }
+  } else if (state->count == 2) {
+    if (state->interrupted || !state->pressed) {
+      return DOUBLE_TAP;
+    }
+    else {
+      return DOUBLE_HOLD;
+    }
+  } else { return 5; } // any number higher than the maximum state value you return above
 }
 
 void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data) {
-  td_state = tap_and_hold_dance (state);
-  switch (td_state) {
+  td_state_enter_spotlight = dance (state);
+  switch (td_state_enter_spotlight) {
     case SINGLE_TAP:
       SEND_STRING(SS_TAP(X_ENTER));
       break;
     case SINGLE_HOLD:
       SEND_STRING(SS_LGUI(SS_TAP(X_SPACE)));
       break;
+    default:
+      break;
   }
 }
 
-void enter_spotlight_reset (qk_tap_dance_state_t *state, void *user_data) {
-  switch (td_state) {
+void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data) {
+  td_state_switch_spaces = dance (state);
+  switch (td_state_switch_spaces) {
     case SINGLE_TAP:
+      SEND_STRING(SS_LCTL(SS_TAP(X_INT1)));
       break;
-    case SINGLE_HOLD:
+    case DOUBLE_TAP:
+      SEND_STRING(SS_LCTL(SS_TAP(X_INT2)));
+      break;
+    default:
       break;
   }
+}
+
+void td_reset (qk_tap_dance_state_t *state, void *user_data) {
 }
 
 qk_tap_dance_action_t tap_dance_actions[] = {
-  [ENTER_SPOTLIGHT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, enter_spotlight_finished, enter_spotlight_reset)
+  [ENTER_SPOTLIGHT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, enter_spotlight_finished, td_reset),
+  [SWITCH_SPACES] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, switch_spaces_finished, td_reset)
 };
