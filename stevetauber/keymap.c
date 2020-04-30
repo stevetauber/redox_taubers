@@ -18,11 +18,11 @@ enum td_keycodes {
 typedef enum {
   SINGLE_TAP,
   SINGLE_HOLD,
-} td_state_t;
+} td_state_tap_and_hold;
 
 
-static td_state_t td_state;
-int cur_dance (qk_tap_dance_state_t *state);
+static td_state_tap_and_hold td_state;
+int tap_and_hold_dance (qk_tap_dance_state_t *state);
 void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data);
 void enter_spotlight_reset (qk_tap_dance_state_t *state, void *user_data);
 
@@ -83,7 +83,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 
 
-int cur_dance (qk_tap_dance_state_t *state) {
+int tap_and_hold_dance (qk_tap_dance_state_t *state) {
   if (state->count == 1) {
     if (state->interrupted || !state->pressed) { return SINGLE_TAP; }
     else { return SINGLE_HOLD; }
@@ -92,7 +92,7 @@ int cur_dance (qk_tap_dance_state_t *state) {
 }
 
 void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data) {
-  td_state = cur_dance(state);
+  td_state = tap_and_hold_dance (state);
   switch (td_state) {
     case SINGLE_TAP:
       SEND_STRING(SS_TAP(X_ENTER));
