@@ -11,6 +11,9 @@ enum custom_keycodes {
   FUNC,
 };
 
+int dance (qk_tap_dance_state_t *state);
+void td_reset (qk_tap_dance_state_t *state, void *user_data);
+
 enum td_keycodes {
   ENTER_SPOTLIGHT, // spotlight on tap, gui on hold
   SWITCH_SPACES,   // switch to space 1 or 2 
@@ -23,12 +26,9 @@ typedef enum {
   DOUBLE_HOLD,
 } td_state_options;
 
-
-int dance (qk_tap_dance_state_t *state);
-void td_reset (qk_tap_dance_state_t *state, void *user_data);
-
 static td_state_options td_state_enter_spotlight;
 void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data);
+
 static td_state_options td_state_switch_spaces;
 void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data);
 
@@ -87,8 +87,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 
+void td_reset (qk_tap_dance_state_t *state, void *user_data) {
+}
 
-int dance (qk_tap_dance_state_t *state) {
+// ENTER_SPOTLIGHT
+int dance_es (qk_tap_dance_state_t *state) {
   if (state->count == 1) {
     if (state->interrupted || !state->pressed) {
       return SINGLE_TAP;
@@ -96,18 +99,11 @@ int dance (qk_tap_dance_state_t *state) {
     else {
       return SINGLE_HOLD;
     }
-  } else if (state->count == 2) {
-    if (state->interrupted || !state->pressed) {
-      return DOUBLE_TAP;
-    }
-    else {
-      return DOUBLE_HOLD;
-    }
-  } else { return 5; } // any number higher than the maximum state value you return above
+  } else { return SINGLE_TAP; } // Default to pressing enter
 }
 
 void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data) {
-  td_state_enter_spotlight = dance (state);
+  td_state_enter_spotlight = dance_es (state);
   switch (td_state_enter_spotlight) {
     case SINGLE_TAP:
       SEND_STRING(SS_TAP(X_ENTER));
@@ -120,8 +116,19 @@ void enter_spotlight_finished (qk_tap_dance_state_t *state, void *user_data) {
   }
 }
 
+
+// SWITCH_SPACES
+int dance_ss (qk_tap_dance_state_t *state) {
+  if (state->count == 1) {
+    return SINGLE_TAP;
+  } else if (state->count == 2) {
+    return DOUBLE_TAP;
+  } else { return SINGLE_TAP; } // Default to screen 1
+}
+
+
 void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data) {
-  td_state_switch_spaces = dance (state);
+  td_state_switch_spaces = dance_ss (state);
   switch (td_state_switch_spaces) {
     case SINGLE_TAP:
       SEND_STRING(SS_LCTL(SS_TAP(X_1)));
@@ -132,9 +139,6 @@ void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data) {
     default:
       break;
   }
-}
-
-void td_reset (qk_tap_dance_state_t *state, void *user_data) {
 }
 
 qk_tap_dance_action_t tap_dance_actions[] = {
