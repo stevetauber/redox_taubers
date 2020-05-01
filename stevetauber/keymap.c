@@ -124,10 +124,10 @@ void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data) {
   td_state_switch_spaces = dance (state);
   switch (td_state_switch_spaces) {
     case SINGLE_TAP:
-      SEND_STRING(SS_LCTL(SS_TAP(X_INT1)));
+      SEND_STRING(SS_LCTL(SS_TAP(X_1)));
       break;
     case DOUBLE_TAP:
-      SEND_STRING(SS_LCTL(SS_TAP(X_INT2)));
+      SEND_STRING(SS_LCTL(SS_TAP(X_2)));
       break;
     default:
       break;
