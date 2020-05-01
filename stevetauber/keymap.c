@@ -5,11 +5,6 @@
 #define _HR 1
 #define _FUNC 2
 
-enum custom_keycodes {
-  QWERTY = SAFE_RANGE,
-  HR,
-  FUNC,
-};
 
 int dance (qk_tap_dance_state_t *state);
 void td_reset (qk_tap_dance_state_t *state, void *user_data);
@@ -33,9 +28,13 @@ static td_state_options td_state_switch_spaces;
 void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data);
 
 
+enum custom_keycodes {
+  TG_HR = SAFE_RANGE,
+};
+
+
 // Shortcut to make keymap more readable
 #define MO_FUNC MO(_FUNC)
-#define TG_HRHR TG(_HR)
 #define TD_ESL  TD(ENTER_SPOTLIGHT)
 #define TD_SWSP TD(SWITCH_SPACES)
 #define LGA     LGUI(KC_LALT)
@@ -51,7 +50,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┤                         ├────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      KC_ESC  ,KC_A    ,KC_S    ,KC_D    ,KC_F    ,KC_G    ,KC_LBRC ,                          KC_RBRC ,KC_H    ,KC_J    ,KC_K    ,KC_L    ,KC_SCLN ,KC_QUOT ,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-     KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,LGA     ,TG_HRHR ,        TG_HRHR ,LGA     ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
+     KC_LSFT ,KC_Z    ,KC_X    ,KC_C    ,KC_V    ,KC_B    ,LGA     ,TG_HR   ,        TG_HR   ,LGA     ,KC_N    ,KC_M    ,KC_COMM ,KC_DOT  ,KC_SLSH ,KC_RSFT ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
      KC_LCTL ,KC_BSLS ,TD_SWSP ,KC_LALT ,     KC_SPC  ,    KC_LGUI ,TD_ESL  ,        KC_DEL  ,KC_BSPC ,    KC_ENT  ,     KC_LEFT ,KC_DOWN ,KC_UP   ,KC_RGHT 
   //└────────┴────────┴────────┴────────┘    └────────┘   └────────┴────────┘       └────────┴────────┘   └────────┘    └────────┴────────┴────────┴────────┘
@@ -63,7 +62,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┐                         ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      _______ ,SI_Q    ,SI_W    ,SI_E    ,SI_R    ,SI_T    ,_______ ,                          _______ ,SI_Z    ,SI_U    ,SI_I    ,SI_O    ,SI_P    ,SI_PLUS ,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┤                         ├────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-     _______ ,SI_A    ,SI_S    ,SI_D    ,SI_F    ,SI_G    ,SI_SCAR ,                          SI_DSTR ,SI_H    ,SI_J    ,SI_K    ,SJ_L    ,SI_CCAR ,SI_CACU ,
+     _______ ,SI_A    ,SI_S    ,SI_D    ,SI_F    ,SI_G    ,SI_SCAR ,                          SI_DSTR ,SI_H    ,SI_J    ,SI_K    ,SI_L    ,SI_CCAR ,SI_CACU ,
   //├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┐       ┌────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
      _______ ,SI_Y    ,SI_X    ,SI_C    ,SI_V    ,SI_B    ,_______ ,_______ ,        _______ ,_______ ,SI_N    ,SI_M    ,SI_COMM ,SI_DOT  ,SI_MINS ,_______ ,
   //├────────┼────────┼────────┼────────┼────┬───┴────┬───┼────────┼────────┤       ├────────┼────────┼───┬────┴───┬────┼────────┼────────┼────────┼────────┤
@@ -126,7 +125,6 @@ int dance_ss (qk_tap_dance_state_t *state) {
   } else { return SINGLE_TAP; } // Default to screen 1
 }
 
-
 void switch_spaces_finished (qk_tap_dance_state_t *state, void *user_data) {
   td_state_switch_spaces = dance_ss (state);
   switch (td_state_switch_spaces) {
@@ -145,3 +143,19 @@ qk_tap_dance_action_t tap_dance_actions[] = {
   [ENTER_SPOTLIGHT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, enter_spotlight_finished, td_reset),
   [SWITCH_SPACES] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, switch_spaces_finished, td_reset)
 };
+
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch(keycode) {
+    case TG_HR:
+      if(record->event.pressed) {
+        SEND_STRING(SS_LGUI(SS_LALT(SS_TAP(X_SPACE))));
+        layer_invert(_HR);
+      }
+      break;
+  }
+  return true;
+}
+
+
+
